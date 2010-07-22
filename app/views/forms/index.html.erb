@@ -1,0 +1,7 @@
+<h2>Our forms</h2>
+
+<ul>
+  <% for form in @forms %>
+    <li><%= link_to form.title, form_path(form.slug) %></li>
+  <% end -%>
+</ul>

@@ -1,0 +1,6 @@
+<% form_for @google_form do |f| %>
+  <%= render :partial => "form", :locals => {:f=>f} -%>
+  <p>
+    <%= f.submit "Update" %> or <%= link_to "Delete", @google_form, :method => :delete, :confirm => "Are you sure?" %>
+  </p>
+<% end %>

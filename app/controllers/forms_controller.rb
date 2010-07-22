@@ -1,21 +1,31 @@
-class OperateFormController < ApplicationController
+class FormsController < ApplicationController
+
+  skip_before_filter :verify_authenticity_token, :only => [:submit]
+
   def index
     @forms = GoogleForm.all
   end
   
   def show
-    slug = params[:slug].first
+    slug = params[:id]
     if @google_form = GoogleForm.find_by_slug(slug)
       response  = @google_form.fetch_form_page!
       form_html = response.body
-      doc       = clean_up_html(form_html)
-      render :text => doc.to_html
+      if doc = clean_up_html(form_html)
+        render :text => doc.to_html
+      else
+        render :text => "error loading form"
+      end
     else
       redirect_to '/'
     end
   end
+
+  def thank_you
+    @google_form = GoogleForm.find(params[:id])
+  end
   
-  def update
+  def submit
     if @google_form = GoogleForm.find(params[:id])
       params.delete(:id)
       params.delete(:action)
@@ -24,7 +34,7 @@ class OperateFormController < ApplicationController
       response = @google_form.submit(google_form_action, params)
       result_html = response.body
       if result_html =~ %r{<title>Thanks!<\/title>}
-        redirect_to '/thankyou.html'
+        redirect_to thank_you_form_path(@google_form)
       elsif result_html =~ /Moved Temporarily/
         render :text => "Ooh, this form has been moved or disabled. How odd."
       else
@@ -36,7 +46,7 @@ class OperateFormController < ApplicationController
       end
     end
   end
-  
+
   private
   def clean_up_html(form_html)
     doc = Nokogiri::HTML(form_html)
@@ -44,12 +54,12 @@ class OperateFormController < ApplicationController
     doc.xpath("//*[@class='ss-legal']").each { |n| n.unlink }
     doc.xpath("//link").each { |n| n.unlink }
     doc.xpath("//style").each { |n| n.unlink }
-
+    
     google_form = doc.xpath("//form").first
     return false unless google_form
     google_form_action = google_form["action"]
-    google_form["action"] = submit_operate_form_url(:id => @google_form.id, :google_form => google_form_action)
-    
+    google_form["action"] = submit_form_url(@google_form, :google_form => google_form_action)
+
     css_node = doc.create_element('link')
     css_node["href"] = "/stylesheets/reset.css"
     css_node["rel"] = "stylesheet"
@@ -57,7 +67,7 @@ class OperateFormController < ApplicationController
     doc.xpath("//head").first.add_child(css_node)
     
     css_node = doc.create_element('link')
-    css_node["href"] = "/stylesheets/style.css"
+    css_node["href"] = "/stylesheets/google_forms.css"
     css_node["rel"] = "stylesheet"
     css_node["type"] = "text/css"
     doc.xpath("//head").first.add_child(css_node)
@@ -66,9 +76,9 @@ class OperateFormController < ApplicationController
     footer["id"] = "footer"
     doc.xpath("//body").first.add_child(footer)
     
-    analytics = doc.create_element('div')
-    analytics.inner_html = render_to_string :partial => 'layouts/google_analytics'
-    doc.xpath("//body").first.add_child(analytics)
+    # analytics = doc.create_element('div')
+    # analytics.inner_html = render_to_string :partial => 'layouts/google_analytics'
+    # doc.xpath("//body").first.add_child(analytics)
     doc
   end
 end

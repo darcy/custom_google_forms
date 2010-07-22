@@ -1,0 +1,26 @@
+<h2>Google forms</h2>
+
+<p><%= link_to "New Google Form", new_google_form_path %></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% unless @google_forms.blank? %>
+      <% for form in @google_forms %>
+        <tr>
+          <td><%= form.title %></td>
+          <td><%= link_to "View Form", form_path(form.slug) %> <%= link_to "Edit", edit_google_form_path(form) %></td>
+        </tr>
+      <% end -%>
+    <% else %>
+      <tr>
+        <td colspan=4>No forms yet.</td>
+      </tr>
+    <% end -%>
+  </tbody>
+</table>
