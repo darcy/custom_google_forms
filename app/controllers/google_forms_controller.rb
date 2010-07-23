@@ -1,4 +1,6 @@
 class GoogleFormsController < ApplicationController
+
+  before_filter :require_authorization #must be defined in app_controller
   
   def index
     @google_forms = GoogleForm.all
