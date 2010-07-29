@@ -16,9 +16,9 @@ class GoogleFormsController < ApplicationController
 
   def update
     @google_form = GoogleForm.find(params[:id])
-    if @google_form.update_attribtes(params[:google_form])
+    if @google_form.update_attributes(params[:google_form])
       flash[:notice] = "Your form '#{@google_form.title}' has been successfully updated."
-      redirect_to google_forms_path
+      redirect_to params[:success_url].blank? ? google_forms_path : params[:success_url]
     else
       flash.now[:error] = "We could not update your form"
       render :edit
