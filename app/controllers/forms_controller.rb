@@ -34,7 +34,7 @@ class FormsController < ApplicationController
       response = @google_form.submit(google_form_action, params)
       result_html = response.body
       if result_html =~ %r{<title>Thanks!<\/title>}
-        redirect_to thank_you_form_path(@google_form)
+        render :text => @google_form.thank_you_message
       elsif result_html =~ /Moved Temporarily/
         render :text => "Ooh, this form has been moved or disabled. How odd."
       else
@@ -67,7 +67,7 @@ class FormsController < ApplicationController
     doc.xpath("//head").first.add_child(css_node)
     
     css_node = doc.create_element('link')
-    css_node["href"] = "/stylesheets/google_forms.css"
+    css_node["href"] = "/stylesheets/google_forms.css?#{Time.new.to_i}"
     css_node["rel"] = "stylesheet"
     css_node["type"] = "text/css"
     doc.xpath("//head").first.add_child(css_node)
